@@ -34,7 +34,8 @@ Logistic Regression  →  Decision Tree  →  Random Forest  →  CatBoost
 | Decision Tree (depth 5) | 0.8379 | 0.76 |
 | Random Forest (300 trees) | 0.8566 | 0.60 |
 | CatBoost (one-hot categories) | 0.855 | 0.70 |
-| **CatBoost (native `cat_features`)** | **0.8593** | **0.71** |
+| CatBoost (native `cat_features`) | 0.8593 | 0.71 |
+| **CatBoost (tuned, GridSearchCV)** | **0.8736** | — |
 
 *(single stratified 80/20 split, `random_state=42`)*
 
@@ -50,7 +51,17 @@ Logistic Regression  →  Decision Tree  →  Random Forest  →  CatBoost
    using **ordered target statistics** (encoding each row from prior rows only) to avoid target
    leakage. Same lesson as the theory: target encoding > one-hot for categorical features.
 
-3. **Age is the strongest churn driver**, followed by financial features (balance, salary, credit
+3. **Hyperparameter tuning (GridSearchCV, 3-fold CV) lifts CatBoost to ROC-AUC 0.8736.** The
+   winning config uses a *low* `learning_rate` (0.03) — smaller boosting steps are more careful
+   and more accurate given enough trees.
+
+4. **The decision threshold is a business lever, not a fixed 0.5.** Sweeping it shows the
+   recall/precision trade-off directly: lowering the threshold to 0.3 catches 91% of churners
+   (recall 0.91) at precision 0.36 — a sensible operating point for *retention*, where missing a
+   leaver costs more than a wasted offer. ROC-AUC already scores the model independent of any
+   threshold; the threshold is chosen afterwards from the cost of each error.
+
+5. **Age is the strongest churn driver**, followed by financial features (balance, salary, credit
    score). *Caveat:* tree `feature_importances_` is biased toward high-cardinality continuous
    features and understates one-hot-encoded categories — permutation importance / SHAP would be
    more reliable.
@@ -76,6 +87,6 @@ jupyter notebook churn.ipynb   # Restart & Run All
 
 ## Next steps
 
-- Hyperparameter tuning (GridSearchCV / Optuna) with cross-validation.
-- Decision-threshold analysis tuned to the business goal (recall vs precision).
 - Permutation importance / SHAP for trustworthy feature attribution.
+- Serve the tuned model behind a small API (as in the movie-recommender project).
+- Ranking-aware thresholding via a cost matrix instead of a manual sweep.
