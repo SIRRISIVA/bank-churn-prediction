@@ -1,0 +1,16 @@
+# venv / IDE
+.venv/
+venv/
+.idea/
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# CatBoost training logs
+catboost_info/
+
+# data (download from Kaggle — see README)
+Churn_Modelling.csv
+
+# personal Anki study notes (kept in the central deck, not in the project repo)
+theory_cards.md
